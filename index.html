@@ -137,6 +137,45 @@ html,body{min-height:100%;overflow:hidden}
 }
 
 </style>
+
+<style id="iphone-overlap-fix">
+@media (max-width:760px){
+  .panel{
+    max-height:min(39dvh,350px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding-bottom:calc(16px + env(safe-area-inset-bottom));
+  }
+  .panel::-webkit-scrollbar{display:none}
+  .maplibregl-ctrl-bottom-left,
+  .maplibregl-ctrl-bottom-right{
+    bottom:calc(min(39dvh,350px) + 48px + env(safe-area-inset-bottom)) !important;
+  }
+  .maplibregl-ctrl-attrib{
+    max-width:calc(100vw - 30px);
+    font-size:10px;
+    line-height:1.25;
+    border-radius:10px;
+  }
+  .nm{
+    max-width:72vw;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    text-align:center;
+    font-size:11px;
+    line-height:1.25;
+  }
+  .nm.place{font-size:13px;line-height:1.25}
+}
+@media (max-width:390px){
+  .panel{max-height:min(41dvh,340px)}
+  .maplibregl-ctrl-bottom-left,
+  .maplibregl-ctrl-bottom-right{
+    bottom:calc(min(41dvh,340px) + 48px + env(safe-area-inset-bottom)) !important;
+  }
+}
+</style>
 </head>
 <body data-mode="interactive">
 <div id="map" aria-label="Cartoon 3D route from Wat Phnom to Khmer Expo"></div><div class="vig"></div>
@@ -371,7 +410,7 @@ html,body{min-height:100%;overflow:hidden}
     got.push({k:sl+'|'+n+'|'+pt[0].toFixed(4)+','+pt[1].toFixed(4),n,ty,pt,d:dist(pt,ct)})}
    got.sort((x,y)=>x.d-y.d);const sn=new Set();let c2=0;
    for(const x of got){if(sn.has(x.n)||c2>=cap)continue;sn.add(x.n);c2++;cand.push(x)}}
-  const occ=[],pass=cand.filter(x=>{const p=map.project(x.pt),w=x.n.length*7.2+14,r=[p.x-w/2,p.y-10,p.x+w/2,p.y+10];if(p.x<0||p.y<0||p.x>innerWidth||p.y>innerHeight||(!mobile()&&p.x<400)||(mobile()&&p.y>innerHeight*.5))return false;if(occ.some(o=>r[0]<o[2]&&r[2]>o[0]&&r[1]<o[3]&&r[3]>o[1]))return false;occ.push(r);return true});
+  const occ=[],pass=cand.filter(x=>{const p=map.project(x.pt),w=x.n.length*7.2+14,r=[p.x-w/2,p.y-10,p.x+w/2,p.y+10];if(p.x<0||p.y<0||p.x>innerWidth||p.y>innerHeight||(!mobile()&&p.x<400)||(mobile()&&(p.y<92||p.y>innerHeight*.5)))return false;if(occ.some(o=>r[0]<o[2]&&r[2]>o[0]&&r[1]<o[3]&&r[3]>o[1]))return false;occ.push(r);return true});
   const keep=new Set(pass.map(x=>x.k));
   for(const[k,m] of LBL)if(!keep.has(k)){m.remove();LBL.delete(k)}
   for(const x of pass)if(!LBL.has(x.k))LBL.set(x.k,new maplibregl.Marker({element:Object.assign(document.createElement('div'),{className:'nm '+x.ty,textContent:x.n}),anchor:'center'}).setLngLat(x.pt).addTo(map));
