@@ -78,6 +78,64 @@ h1{letter-spacing:-.025em;color:#27384b}
 /* Destination marker treatment */
 .pin:last-of-type{background:linear-gradient(135deg,#fff8df,#fff);color:#a94b35}
 
+
+/* Responsive layout pass: desktop, tablet, iPhone and landscape */
+html,body{min-height:100%;overflow:hidden}
+#map{height:100dvh;min-height:100%;touch-action:pan-x pan-y}
+.panel{width:clamp(300px,28vw,390px);max-height:calc(100dvh - 36px);overscroll-behavior:contain}
+.top{z-index:5}
+.toast{z-index:8}
+.maplibregl-ctrl-bottom-right{right:8px;bottom:8px}
+.maplibregl-ctrl-bottom-left{left:8px;bottom:8px}
+@media (max-width:900px) and (min-width:761px){
+ .panel{width:320px;left:12px;top:12px;max-height:calc(100dvh - 24px);padding:15px}
+ .top{top:12px;left:auto;right:14px;transform:none}
+}
+@media (max-width:760px){
+ html,body{height:100%;height:100dvh}
+ #map{inset:0;height:100dvh}
+ .panel{
+  left:max(9px,env(safe-area-inset-left));right:max(9px,env(safe-area-inset-right));
+  top:auto;bottom:max(9px,env(safe-area-inset-bottom));width:auto;
+  max-height:min(43dvh,390px);padding:13px 14px 12px;border-radius:19px;
+ }
+ .panel h1{font-size:clamp(17px,4.7vw,21px);line-height:1.25}
+ .sub{display:none}
+ .turn{gap:9px;padding:9px 10px;border-radius:15px}
+ .turn svg{width:38px;height:38px;padding:7px}
+ .turn h2{font-size:clamp(15px,4vw,18px)}
+ .d,.st{font-size:12px}
+ .prog{margin:9px 0 3px}
+ .row{gap:6px;margin-top:9px}
+ .btn{min-width:0;padding:9px 6px;font-size:12px;border-radius:11px}
+ .btn#fit{font-size:11px;flex:.85}
+ .halls{margin-top:10px}
+ .halls h3{margin-bottom:6px}
+ .chips{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+ .chip{padding:7px 2px;font-size:12px;border-radius:9px}
+ .note{font-size:10px;line-height:1.35;margin-top:7px}
+ .top{top:max(9px,env(safe-area-inset-top));left:auto;right:max(9px,env(safe-area-inset-right));transform:none}
+ .top button{padding:7px 12px;font-size:12px}
+ .toast{right:10px;left:10px;bottom:calc(min(43dvh,390px) + 18px + env(safe-area-inset-bottom));max-width:none;text-align:center}
+ .maplibregl-ctrl-bottom-right{bottom:calc(min(43dvh,390px) + 16px + env(safe-area-inset-bottom))}
+ .maplibregl-ctrl-bottom-left{bottom:calc(min(43dvh,390px) + 16px + env(safe-area-inset-bottom))}
+}
+@media (max-width:390px){
+ .panel{max-height:46dvh;padding:11px 12px}
+ .chips{gap:4px}
+ .chip{font-size:11px;padding:6px 1px}
+ .meta{font-size:11px}
+ .btn{font-size:11px}
+}
+@media (max-height:500px) and (orientation:landscape){
+ .panel{left:10px;right:auto;top:10px;bottom:10px;width:min(42vw,350px);max-height:none;padding:10px 12px}
+ .panel .sub{display:none}
+ .panel .halls{margin-top:7px}
+ .panel .note{display:none}
+ .top{top:10px;left:auto;right:10px;transform:none}
+ .maplibregl-ctrl-bottom-right{right:8px;bottom:8px}
+}
+
 </style>
 </head>
 <body data-mode="interactive">
@@ -324,6 +382,8 @@ h1{letter-spacing:-.025em;color:#27384b}
    for(const f of fs){const ps=f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.type==='MultiPolygon'?f.geometry.coordinates:[];for(const poly of ps){const o=poly[0];if(!o||o.length<4)continue;const xs=o.map(p=>p[0]),ys=o.map(p=>p[1]),x1=Math.max(...xs),y1=Math.max(...ys);
     for(let y=Math.min(...ys)+.0001;y<y1;y+=.00022)for(let x=Math.min(...xs)+.00012;x<x1;x+=.00026){const q=Math.round(x*1e5+y*1e5);if(RN(q)>.3&&ins([x,y],o)){const[lx,ly]=layer.loc([x,y]);layer.tree(lx,ly,q);if(++n>600)return}}}}}}
 
+ window.addEventListener('resize',()=>{map.resize();});
+ window.addEventListener('orientationchange',()=>{setTimeout(()=>map.resize(),250);});
  map.on('load',()=>{
   // Colorful Phnom Penh palette: lush parks, clear blue water, warm streets,
   // and varied architectural colors. Apply directly to source building layers too.
@@ -336,7 +396,7 @@ h1{letter-spacing:-.025em;color:#27384b}
      // Suppress original map building fill so the custom pastel footprints are the only fill.
      map.setPaintProperty(l.id,'fill-opacity',0);
     } else if(l.type==='fill-extrusion' && (sl==='building' || /building/.test(id))){
-     const buildingColors=['#f28b72','#65c7ad','#65aee8','#e88bb5','#f2c65f','#a994df','#83c98b'];
+     const buildingColors=['#e9785d','#48b99b','#559bd6','#d978a4','#e9b84f','#9178c8','#78ad69'];
      map.setPaintProperty(l.id,'fill-extrusion-color',
       ['match',['%', ['abs',['to-number',['id'],0]],7],
        0,buildingColors[0],1,buildingColors[1],2,buildingColors[2],
@@ -379,8 +439,8 @@ h1{letter-spacing:-.025em;color:#27384b}
    const buildingSource=buildingLayer?.source||'openmaptiles';
    const firstSymbol=map.getStyle().layers.find(l=>l.type==='symbol')?.id;
    const pastel=['match',['%', ['abs',['to-number',['id'],0]],7],
-    0,'#f28b72',1,'#65c7ad',2,'#65aee8',3,'#e88bb5',
-    4,'#f2c65f',5,'#a994df','#83c98b'];
+    0,'#e9785d',1,'#48b99b',2,'#559bd6',3,'#d978a4',
+    4,'#e9b84f',5,'#9178c8','#78ad69'];
    map.addLayer({id:'pastel-building-footprints',type:'fill',source:buildingSource,
     'source-layer':'building',minzoom:12,
     paint:{'fill-color':pastel,'fill-outline-color':'#ffffff','fill-opacity':1}},firstSymbol);
@@ -392,8 +452,8 @@ h1{letter-spacing:-.025em;color:#27384b}
     h=['coalesce',['get','render_height'],6],mh=['coalesce',['get','render_min_height'],0],top=['-',h,.8],
     ok=['!=',['get','hide_3d'],true],gr=['==',mh,0],
     v=['%',['floor',['+',['*',['coalesce',['to-number',['id']],0],7],['*',h,13]]],7],
-    walls=['match',v,0,'#f28b72',1,'#65c7ad',2,'#65aee8',3,'#e88bb5',4,'#f2c65f',5,'#a994df','#83c98b'],
-    glass=['match',v,0,'#285c83',1,'#246c70',2,'#285c83',3,'#754767',4,'#80632b',5,'#51467d','#356b4b'],
+    walls=['match',v,0,'#e9785d',1,'#48b99b',2,'#559bd6',3,'#d978a4',4,'#e9b84f',5,'#9178c8','#78ad69'],
+    glass=['match',v,0,'#633f43',1,'#245b55',2,'#294e70',3,'#65394f',4,'#72551e',5,'#493c70','#34563b'],
     add=(id,filter,paint)=>map.addLayer({id,type:'fill-extrusion',source:src,'source-layer':'building',
      minzoom:13,filter,paint:{'fill-extrusion-opacity':1,'fill-extrusion-vertical-gradient':true,...paint}},before),
     P=3.2,F=3.4,N=6,band=(id,a,b,col)=>add(id,['all',ok,gr,['>',top,a]],
@@ -403,7 +463,7 @@ h1{letter-spacing:-.025em;color:#27384b}
    for(let k=0;k<N;k++){const a=P+k*F;band('bld-g'+k,a+.9,a+2.4,glass);band('bld-w'+(k+1),a+2.4,a+F+.9,walls)}
    band('bld-top',P+N*F+.9,1000,'#f4d68b');
    add('bld-part',['all',ok,['!',gr]],{'fill-extrusion-color':walls,'fill-extrusion-height':top,'fill-extrusion-base':mh});
-   add('bld-roof',['all',ok],{'fill-extrusion-color':['case',['<',h,12],'#f6c39d','#b9c9d5'],
+   add('bld-roof',['all',ok],{'fill-extrusion-color':['match',v,0,'#f4b18f',1,'#9bd9c2',2,'#a8c9eb',3,'#e9a9c2',4,'#f2d28b',5,'#c1b2e8','#b8d6a8'],
     'fill-extrusion-height':h,'fill-extrusion-base':top});
    for(const[id,col,w0,w1]of[['bridge-case','#cbd9e0',7,22],['bridge-deck','#fffdf7',4,16]])
     map.addLayer({id,type:'line',source:src,'source-layer':'transportation',minzoom:13,
